@@ -7,6 +7,13 @@
 
 	<script src="https://code.jquery.com/jquery-3.4.1.js"></script>
 	<script src="js/counter.js"></script>
+	<script>
+		$(document).ready(function() {
+			var counter = new Counter({
+				element: $("#container")
+			});
+		});
+	</script>
 </head>
 <body>
 	<div id="container"></div>

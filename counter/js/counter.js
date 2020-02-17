@@ -3,6 +3,9 @@ var internalCounter = 0;
 var digits = 2;
 // var max_digits = 6;
 
+var interval;
+var is_started = false;
+
 $(document).ready(function() {
 	for (var i = 0; i < digits; i++) {
 		// count[] = 0;
@@ -17,44 +20,95 @@ $(document).ready(function() {
 		$("#container").prepend(divNums);
 	}
 
-	var interval = setInterval(function() {
+	$("#add-hit").on('click', function() {
 		addHit();
-	}, 1000);
+	});
 
-	$("#stop").on('click', function() {
-		clearInterval(interval);
+	$("#start").on('click', function() {
+		if(is_started)
+			stop();
+		else
+			start();
+	});
+
+	$("#animate").on('click', function() {
+		// clearInterval(interval);
+		animateAt();
 	});
 });
 
+function start() {
+	interval = setInterval(function() {
+		addHit();
+	}, 1000);
+
+	$("#start").text("Stop!");
+	is_started = true;
+}
+
+function stop() {
+	clearInterval(interval);
+
+	$("#start").text("Start!");
+	is_started = false;
+}
+
 function addHit() {
-	/*
-	// Reset counter
-	if(count > 9) {
-		count = 0;
-	}
-
-	//  0 == unidades
-	//  1 == decenas
-	animate(0, count++);
-	*/
-
 	var sdigits = splitDigits(internalCounter);
 	console.log(sdigits);
 
-	for (var i = 0; i < digits; i++) {
-		animate(i, sdigits[i]);
+	for (var i = 1; i <= digits; i++) 
+	{
+		var index = digits - i;
+
+		console.log(getClassName(index) + ": " + sdigits[i - 1]);
+
+		if(internalCounter > 0)
+			animate(index, sdigits[i - 1]);
 	}
 
+	// For test
+	$("#counter").text(internalCounter);
 	internalCounter++;
+
+	// Reset counter if it's overflowed
+	if(Math.pow(10, digits) <= internalCounter)
+		internalCounter = 0;
+}
+
+function resetAll() {
+	// Doesn't work!
+
+	for (var i = 0; i < digits; i++) 
+	{
+		var upperChild = getUpperChild(i);
+
+		// console.log(upperChild);
+		// console.log(upperChild.find('.animate'));
+
+		upperChild.find('.animate').removeClass('animate');
+		upperChild.find('.shown').removeClass('shown');
+	}	
+}
+
+function animateAt() {
+	// var count = internalCounter;
+
+	resetAll();
+
+	internalCounter = parseInt($("#animate-at").val());
+	addHit();
+
+	// internalCounter = count;
 }
 
 function splitDigits(n) {
 	var str = n.toString();
 
-	var diff = digits - n.length;
-	str = diff >= 0 ? "0".repeat() : str;
+	var diff = digits - str.length;
+	str = diff >= 0 ? "0".repeat(diff) + str : str;
 
-	return (""+str).split("");
+	return str.split("");
 }
 
 function getUpperChild(index) {
@@ -110,29 +164,38 @@ function createDiv(index) {
 function animate(nums_index, index) {
 	var sel = "."+getClassName(nums_index);
 	var child = getChild($(sel), index);
-	var nextChild = getChild($(sel), index == 9 ? 0 : index + 1);
-	var prevChild = getChild($(sel), index == 0 ? 9 : --index);
 
-	// Reset counter
-	// if(index == -1) index = 9;
+	if(index == 0) index = 10; // Reset
 
-	// Show animate and the next child will be shown class
-	nextChild.addClass('shown');
+	var prevChild = getChild($(sel), --index);
+	var prev2Child = getChild($(sel), --index);
+
+	// 0, 0
+	// nums-ten: data-num=9 --> class=animate && data-num=0 --> class=shown
+	// nums-one: data-num=9 --> class=animate && data-num=0 --> class=shown
+
+	// 0, 1
+	// nums-ten: data-num=9 --> class=animate && data-num=0 --> class=shown
+	// nums-one: data-num=0 --> class=animate && data-num=1 --> class=shown
+
+	prevChild.addClass('animate');
+	child.addClass('shown');
+
+
+	if(nums_index == 0)
+		delayedRemoveClass(prev2Child, 'animate');
+	else
+		prev2Child.removeClass('animate');
 
 	prevChild.removeClass('shown');
-	delayedRemoveClass(prevChild, 'animate');
-	// prevChild.removeClass('animate');
 
-	child.addClass("animate");
-	child.removeClass('shown');
-
-	console.log(getCount());
+	// console.log(getCount());
 }
 
 function delayedRemoveClass(el, className, timeout = 1000) {
 	setTimeout(function() {
        el.removeClass(className);
-   }, 800);
+   }, timeout);
 }
 
 function getChild(el, index) {
@@ -148,9 +211,3 @@ function hide(el) {
 	// hide immediately.
 	el.css("display", "none");
 }
-
-/*
-setTimeout(function() {
-	animate(0, 0);
-}, 2000);
-*/

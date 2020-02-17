@@ -201,6 +201,14 @@ body {
   visibility: visible;
 }
 
+.shown:after {
+  visibility: visible;
+}
+
 .animate {
   animation: num-one 10s infinite;
+}
+
+#counter {
+  color: white;
 }
